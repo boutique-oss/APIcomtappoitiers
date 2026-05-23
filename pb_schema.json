@@ -1,6 +1,5 @@
 [
   {
-    "id": "structures0001",
     "name": "structures",
     "type": "base",
     "listRule": "",
@@ -8,125 +7,82 @@
     "createRule": "",
     "updateRule": "",
     "deleteRule": "",
-    "indexes": [],
-    "fields": [
+    "schema": [
       {
-        "id": "nomfld0001",
         "name": "nom",
         "type": "text",
         "required": true,
         "presentable": true,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "catfld0001",
         "name": "categorie",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "adrfld0001",
         "name": "adresse",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "vilfld0001",
         "name": "ville",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "cpofld0001",
         "name": "code_postal",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "latfld0001",
         "name": "lat",
         "type": "number",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "noDecimal": false
+        "options": { "min": null, "max": null, "noDecimal": false }
       },
       {
-        "id": "lngfld0001",
         "name": "lng",
         "type": "number",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "noDecimal": false
+        "options": { "min": null, "max": null, "noDecimal": false }
       },
       {
-        "id": "cnofld0001",
         "name": "contact_nom",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "ctlfld0001",
         "name": "contact_tel",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       },
       {
-        "id": "cemfld0001",
         "name": "contact_email",
         "type": "email",
         "required": false,
-        "presentable": false,
-        "exceptDomains": null,
-        "onlyDomains": null
+        "options": { "exceptDomains": null, "onlyDomains": null }
       },
       {
-        "id": "stafld0001",
         "name": "statut",
         "type": "select",
         "required": false,
-        "presentable": false,
-        "maxSelect": 1,
-        "values": ["À contacter", "En cours", "RDV planifié", "Signé", "Sans suite"]
+        "options": {
+          "maxSelect": 1,
+          "values": ["À contacter", "En cours", "RDV planifié", "Signé", "Sans suite"]
+        }
       },
       {
-        "id": "notfld0001",
         "name": "notes",
         "type": "text",
         "required": false,
-        "presentable": false,
-        "min": null,
-        "max": null,
-        "pattern": ""
+        "options": { "min": null, "max": null, "pattern": "" }
       }
     ]
   }
