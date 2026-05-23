@@ -5,6 +5,8 @@ import { pb, Structure, Statut, STATUT_COLORS, STATUT_BG } from '@/lib/pocketbas
 import Map from '@/components/Map'
 import FicheModal from '@/components/FicheModal'
 import ImportCSV from '@/components/ImportCSV'
+import AdminAuth from '@/components/AdminAuth'
+import AdminPanel from '@/components/AdminPanel'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
@@ -12,6 +14,8 @@ export default function HomePage() {
   const [structures, setStructures] = useState<Structure[]>([])
   const [selected, setSelected] = useState<Structure | null>(null)
   const [showImport, setShowImport] = useState(false)
+  const [showAdminAuth, setShowAdminAuth] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
   const [filterStatut, setFilterStatut] = useState<Statut | 'Tous'>('Tous')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
@@ -146,13 +150,26 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Import CSV */}
-        <div className="px-4 py-3 border-t border-ardoise-700">
+        {/* Import CSV + Admin */}
+        <div className="px-4 py-3 border-t border-ardoise-700 flex gap-2">
           <button
             onClick={() => setShowImport(true)}
-            className="w-full bg-ardoise-700 hover:bg-ardoise-600 text-slate-300 hover:text-white text-xs font-medium rounded px-3 py-2 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 bg-ardoise-700 hover:bg-ardoise-600 text-slate-300 hover:text-white text-xs font-medium rounded px-3 py-2 transition-colors flex items-center justify-center gap-2"
           >
             <span>↑</span> Importer CSV
+          </button>
+          <button
+            onClick={() => {
+              if (sessionStorage.getItem('admin_ok') === '1') {
+                setShowAdmin(true)
+              } else {
+                setShowAdminAuth(true)
+              }
+            }}
+            title="Mode admin"
+            className="bg-ardoise-700 hover:bg-ardoise-600 text-slate-400 hover:text-amber-400 text-sm rounded px-3 py-2 transition-colors"
+          >
+            🔒
           </button>
         </div>
       </aside>
@@ -193,6 +210,22 @@ export default function HomePage() {
         <ImportCSV
           onImported={fetchStructures}
           onClose={() => setShowImport(false)}
+        />
+      )}
+
+      {showAdminAuth && (
+        <AdminAuth
+          onSuccess={() => { setShowAdminAuth(false); setShowAdmin(true) }}
+          onClose={() => setShowAdminAuth(false)}
+        />
+      )}
+
+      {showAdmin && (
+        <AdminPanel
+          structures={structures}
+          onClose={() => setShowAdmin(false)}
+          onRefresh={fetchStructures}
+          onSelectStructure={s => { setSelected(s); setShowAdmin(false) }}
         />
       )}
     </div>
