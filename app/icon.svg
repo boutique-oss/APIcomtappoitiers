@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fond ardoise arrondi -->
+  <rect width="32" height="32" rx="7" fill="#1a1f2e"/>
+
+  <!-- Corps de l'aiguille -->
+  <rect x="14.5" y="2.5" width="3" height="21" rx="1.5" fill="#f59e0b"/>
+
+  <!-- Chas (trou) de l'aiguille -->
+  <ellipse cx="16" cy="6" rx="1.1" ry="1.7" fill="#1a1f2e"/>
+
+  <!-- Pointe de l'aiguille -->
+  <polygon points="14.5,23.5 17.5,23.5 16,29.5" fill="#f59e0b"/>
+
+  <!-- Fil qui passe dans le chas -->
+  <path d="M16 4.5 C21 9 21 16 15.5 20.5 C10 25 15 29 19 27"
+        stroke="#f59e0b" stroke-width="1.5" fill="none"
+        stroke-opacity="0.55" stroke-linecap="round"/>
+</svg>
