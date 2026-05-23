@@ -88,7 +88,8 @@ export default function ImportCSV({ onImported, onClose }: Props) {
 
         await pb.collection('structures').create(payload)
       } catch (e: any) {
-        errs.push(`${row.nom}: ${e.message}`)
+        const detail = e?.data ? ` | ${JSON.stringify(e.data)}` : ''
+        errs.push(`${row.nom}: ${e.message}${detail}`)
       }
 
       done++
