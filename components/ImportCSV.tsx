@@ -71,6 +71,9 @@ export default function ImportCSV({ onImported, onClose }: Props) {
           if (coords) { lat = coords.lat; lng = coords.lng }
         }
 
+        const STATUTS_VALIDES = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
+        const statutValue = (row.statut || '').trim()
+
         const payload: Record<string, unknown> = {
           nom: row.nom || 'Sans nom',
           categorie: row.categorie || '',
@@ -81,9 +84,9 @@ export default function ImportCSV({ onImported, onClose }: Props) {
           lng,
           contact_nom: row.contact_nom || '',
           contact_tel: row.contact_tel || '',
-          statut: (row.statut || 'À contacter').trim(),
           notes: row.notes || '',
         }
+        if (statutValue && STATUTS_VALIDES.includes(statutValue)) payload.statut = statutValue
         if (row.contact_email?.trim()) payload.contact_email = row.contact_email.trim()
 
         await pb.collection('structures').create(payload)

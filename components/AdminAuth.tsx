@@ -4,10 +4,11 @@ import { useState } from 'react'
 
 interface Props {
   onSuccess: () => void
-  onClose: () => void
+  onClose?: () => void
+  mandatory?: boolean
 }
 
-export default function AdminAuth({ onSuccess, onClose }: Props) {
+export default function AdminAuth({ onSuccess, onClose, mandatory = false }: Props) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
 
@@ -23,17 +24,26 @@ export default function AdminAuth({ onSuccess, onClose }: Props) {
     }
   }
 
+  const handleBackdrop = () => {
+    if (!mandatory && onClose) onClose()
+  }
+
   return (
-    <div className="fixed inset-0 z-[2000] bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[2000] bg-ardoise-950 flex items-center justify-center p-4"
+      onClick={handleBackdrop}
+    >
       <div
         className="bg-ardoise-900 border border-ardoise-700 rounded-xl shadow-2xl w-full max-w-xs fade-up"
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-6 py-5">
-          <div className="text-center mb-5">
-            <div className="text-2xl mb-2">🔒</div>
-            <h3 className="font-bold text-white">Accès admin</h3>
-            <p className="text-xs text-slate-500 mt-1">Entrez le code d'accès</p>
+        <div className="px-6 py-7">
+          <div className="text-center mb-6">
+            <div className="text-xs font-mono text-amber-500 uppercase tracking-widest mb-3">
+              Atelier S. Hamache
+            </div>
+            <h1 className="text-xl font-bold text-white">Partenaires Grand Poitiers</h1>
+            <p className="text-xs text-slate-500 mt-2">Entrez le code d'accès</p>
           </div>
 
           <form onSubmit={handleSubmit}>

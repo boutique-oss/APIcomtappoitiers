@@ -4,17 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { pb, Structure, Statut, STATUT_COLORS, STATUT_BG } from '@/lib/pocketbase'
 import Map from '@/components/Map'
 import FicheModal from '@/components/FicheModal'
-import ImportCSV from '@/components/ImportCSV'
 import AdminAuth from '@/components/AdminAuth'
 import AdminPanel from '@/components/AdminPanel'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
 export default function HomePage() {
+  const [authenticated, setAuthenticated] = useState(false)
   const [structures, setStructures] = useState<Structure[]>([])
   const [selected, setSelected] = useState<Structure | null>(null)
-  const [showImport, setShowImport] = useState(false)
-  const [showAdminAuth, setShowAdminAuth] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
   const [filterStatut, setFilterStatut] = useState<Statut | 'Tous'>('Tous')
   const [search, setSearch] = useState('')
@@ -33,7 +31,21 @@ export default function HomePage() {
     }
   }, [])
 
-  useEffect(() => { fetchStructures() }, [fetchStructures])
+  useEffect(() => {
+    if (sessionStorage.getItem('admin_ok') === '1') {
+      setAuthenticated(true)
+      fetchStructures()
+    }
+  }, [fetchStructures])
+
+  const handleAuthSuccess = () => {
+    setAuthenticated(true)
+    fetchStructures()
+  }
+
+  if (!authenticated) {
+    return <AdminAuth onSuccess={handleAuthSuccess} mandatory />
+  }
 
   const filtered = structures.filter(s => {
     const matchStatut = filterStatut === 'Tous' || s.statut === filterStatut
@@ -54,14 +66,23 @@ export default function HomePage() {
       <aside className="w-72 flex-shrink-0 flex flex-col bg-ardoise-900 border-r border-ardoise-700 slide-in">
 
         {/* Logo / Header */}
-        <div className="px-5 pt-5 pb-4 border-b border-ardoise-700">
-          <div className="text-xs font-mono text-amber-500 uppercase tracking-widest mb-1">
-            Atelier S. Hamache
+        <div className="px-5 pt-5 pb-4 border-b border-ardoise-700 flex items-start justify-between">
+          <div>
+            <div className="text-xs font-mono text-amber-500 uppercase tracking-widest mb-1">
+              Atelier S. Hamache
+            </div>
+            <h1 className="text-base font-bold text-white leading-tight">
+              Partenaires<br />
+              <span className="text-slate-400 font-normal">Grand Poitiers</span>
+            </h1>
           </div>
-          <h1 className="text-base font-bold text-white leading-tight">
-            Partenaires<br />
-            <span className="text-slate-400 font-normal">Grand Poitiers</span>
-          </h1>
+          <button
+            onClick={() => setShowAdmin(true)}
+            title="Gestion"
+            className="text-slate-600 hover:text-amber-400 transition-colors mt-1 text-base"
+          >
+            ⚙️
+          </button>
         </div>
 
         {/* Stats rapides */}
@@ -149,29 +170,6 @@ export default function HomePage() {
             ))
           )}
         </div>
-
-        {/* Import CSV + Admin */}
-        <div className="px-4 py-3 border-t border-ardoise-700 flex gap-2">
-          <button
-            onClick={() => setShowImport(true)}
-            className="flex-1 bg-ardoise-700 hover:bg-ardoise-600 text-slate-300 hover:text-white text-xs font-medium rounded px-3 py-2 transition-colors flex items-center justify-center gap-2"
-          >
-            <span>↑</span> Importer CSV
-          </button>
-          <button
-            onClick={() => {
-              if (sessionStorage.getItem('admin_ok') === '1') {
-                setShowAdmin(true)
-              } else {
-                setShowAdminAuth(true)
-              }
-            }}
-            title="Mode admin"
-            className="bg-ardoise-700 hover:bg-ardoise-600 text-slate-400 hover:text-amber-400 text-sm rounded px-3 py-2 transition-colors"
-          >
-            🔒
-          </button>
-        </div>
       </aside>
 
       {/* ── Carte ── */}
@@ -203,20 +201,6 @@ export default function HomePage() {
             setStructures(prev => prev.map(s => s.id === updated.id ? updated : s))
             setSelected(updated)
           }}
-        />
-      )}
-
-      {showImport && (
-        <ImportCSV
-          onImported={fetchStructures}
-          onClose={() => setShowImport(false)}
-        />
-      )}
-
-      {showAdminAuth && (
-        <AdminAuth
-          onSuccess={() => { setShowAdminAuth(false); setShowAdmin(true) }}
-          onClose={() => setShowAdminAuth(false)}
         />
       )}
 
