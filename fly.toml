@@ -1,0 +1,24 @@
+# fly.toml — PocketBase sur Fly.io
+# Remplace "apicomtap-pb" par le nom de ton app Fly
+
+app = "apicomtap-pb"
+primary_region = "cdg"   # Paris
+
+[build]
+  dockerfile = "Dockerfile.pocketbase"
+
+[http_service]
+  internal_port = 8090
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = "pb_data"
+  destination = "/pb/pb_data"
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

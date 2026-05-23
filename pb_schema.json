@@ -1,0 +1,27 @@
+[
+  {
+    "name": "structures",
+    "type": "base",
+    "fields": [
+      { "name": "nom",           "type": "text",   "required": true, "presentable": true },
+      { "name": "categorie",     "type": "text" },
+      { "name": "adresse",       "type": "text" },
+      { "name": "ville",         "type": "text" },
+      { "name": "code_postal",   "type": "text" },
+      { "name": "lat",           "type": "number" },
+      { "name": "lng",           "type": "number" },
+      { "name": "contact_nom",   "type": "text" },
+      { "name": "contact_tel",   "type": "text" },
+      { "name": "contact_email", "type": "email" },
+      {
+        "name": "statut",
+        "type": "select",
+        "options": {
+          "maxSelect": 1,
+          "values": ["À contacter", "En cours", "RDV planifié", "Signé", "Sans suite"]
+        }
+      },
+      { "name": "notes", "type": "text" }
+    ]
+  }
+]
