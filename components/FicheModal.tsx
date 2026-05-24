@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { pb, Structure, Statut, STATUT_BG } from '@/lib/pocketbase'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
@@ -12,23 +12,38 @@ interface Props {
 }
 
 export default function FicheModal({ structure, onClose, onUpdate }: Props) {
-  const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState<Partial<Structure>>(structure)
+  const [editing, setEditing]     = useState(false)
+  const [saving, setSaving]       = useState(false)
+  const [autoSaveAt, setAutoSaveAt] = useState<string | null>(null)
+  const [form, setForm]           = useState<Partial<Structure>>(structure)
+  const formRef                   = useRef(form)
+  formRef.current                 = form
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async (silent = false) => {
     setSaving(true)
     try {
-      const updated = await pb.collection('structures').update<Structure>(structure.id, form)
+      const updated = await pb.collection('structures').update<Structure>(structure.id, formRef.current)
       onUpdate(updated)
-      setEditing(false)
+      if (!silent) {
+        setEditing(false)
+      } else {
+        const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        setAutoSaveAt(now)
+      }
     } catch (e) {
       console.error(e)
-      alert('Erreur lors de la sauvegarde')
+      if (!silent) alert('Erreur lors de la sauvegarde')
     } finally {
       setSaving(false)
     }
-  }
+  }, [structure.id, onUpdate])
+
+  // Auto-sauvegarde toutes les 2 minutes en mode édition
+  useEffect(() => {
+    if (!editing) return
+    const interval = setInterval(() => handleSave(true), 2 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [editing, handleSave])
 
   const Field = ({
     label, field, type = 'text', textarea = false
@@ -151,27 +166,42 @@ export default function FicheModal({ structure, onClose, onUpdate }: Props) {
         </div>
 
         {/* Footer actions */}
-        <div className="sticky bottom-0 bg-ardoise-900 border-t border-ardoise-700 px-5 py-3 flex gap-2">
+        <div className="sticky bottom-0 bg-ardoise-900 border-t border-ardoise-700 px-5 py-3">
           {editing ? (
             <>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-ardoise-950 font-bold text-sm rounded px-4 py-2 transition-colors"
-              >
-                {saving ? 'Enregistrement…' : 'Enregistrer'}
-              </button>
-              <button
-                onClick={() => { setEditing(false); setForm(structure) }}
-                className="px-4 py-2 text-sm text-slate-400 hover:text-white border border-ardoise-700 rounded transition-colors"
-              >
-                Annuler
-              </button>
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => handleSave(false)}
+                  disabled={saving}
+                  className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-ardoise-950 font-bold text-sm rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <><span className="animate-spin inline-block">⟳</span> Enregistrement…</>
+                  ) : (
+                    <><span>↑</span> Enregistrer &amp; Sync</>
+                  )}
+                </button>
+                <button
+                  onClick={() => { setEditing(false); setForm(structure) }}
+                  className="px-4 py-2 text-sm text-slate-400 hover:text-white border border-ardoise-700 rounded transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+              <div className="text-xs font-mono text-slate-600 text-center">
+                {saving ? (
+                  <span className="text-amber-500">Enregistrement en cours…</span>
+                ) : autoSaveAt ? (
+                  <span className="text-emerald-600">Sauvegarde auto à {autoSaveAt} ✓</span>
+                ) : (
+                  <span>Sauvegarde automatique toutes les 2 min</span>
+                )}
+              </div>
             </>
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className="flex-1 bg-ardoise-700 hover:bg-ardoise-600 text-white text-sm font-medium rounded px-4 py-2 transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-ardoise-700 hover:bg-ardoise-600 text-white text-sm font-medium rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
             >
               <span>✎</span> Modifier la fiche
             </button>

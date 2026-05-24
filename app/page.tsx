@@ -17,17 +17,23 @@ export default function HomePage() {
   const [filterStatut, setFilterStatut] = useState<Statut | 'Tous'>('Tous')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
+  const [lastSync, setLastSync] = useState<string | null>(null)
 
-  const fetchStructures = useCallback(async () => {
+  const fetchStructures = useCallback(async (manual = false) => {
+    if (manual) setSyncing(true)
+    else setLoading(true)
     try {
-      const records = await pb.collection('structures').getFullList<Structure>({
-        sort: 'nom',
-      })
+      const records = await pb.collection('structures').getFullList<Structure>({ sort: 'nom' })
       setStructures(records)
+      if (manual) {
+        setLastSync(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
+      }
     } catch (e) {
       console.error(e)
     } finally {
       setLoading(false)
+      setSyncing(false)
     }
   }, [])
 
@@ -37,6 +43,13 @@ export default function HomePage() {
       fetchStructures()
     }
   }, [fetchStructures])
+
+  // Rafraîchissement automatique toutes les 2 minutes
+  useEffect(() => {
+    if (!authenticated) return
+    const interval = setInterval(() => fetchStructures(true), 2 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [authenticated, fetchStructures])
 
   const handleAuthSuccess = () => {
     setAuthenticated(true)
@@ -87,7 +100,7 @@ export default function HomePage() {
 
         {/* Stats rapides */}
         <div className="px-5 py-3 border-b border-ardoise-700">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 mb-3">
             <div className="bg-ardoise-800 rounded-lg px-3 py-2">
               <div className="text-lg font-bold text-white">{structures.length}</div>
               <div className="text-xs text-slate-500 font-mono">total</div>
@@ -97,6 +110,19 @@ export default function HomePage() {
               <div className="text-xs text-slate-500 font-mono">signés</div>
             </div>
           </div>
+
+          {/* Bouton sync bidirectionnel */}
+          <button
+            onClick={() => fetchStructures(true)}
+            disabled={syncing}
+            className="w-full flex items-center justify-center gap-2 bg-ardoise-800 hover:bg-ardoise-700 disabled:opacity-60 border border-ardoise-600 hover:border-amber-500/50 text-slate-300 hover:text-white text-xs font-mono rounded px-3 py-2 transition-all"
+          >
+            <span className={syncing ? 'animate-spin inline-block' : ''}>⟳</span>
+            {syncing ? 'Synchronisation…' : 'Sync ↕ deux sens'}
+            {lastSync && !syncing && (
+              <span className="text-slate-600 ml-auto">{lastSync}</span>
+            )}
+          </button>
         </div>
 
         {/* Recherche */}
