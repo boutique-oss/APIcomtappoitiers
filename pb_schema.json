@@ -84,6 +84,36 @@
         "type": "text",
         "required": false,
         "options": { "min": null, "max": null, "pattern": "" }
+      },
+      {
+        "name": "script",
+        "type": "text",
+        "required": false,
+        "options": { "min": null, "max": null, "pattern": "" }
+      }
+    ]
+  },
+  {
+    "id": "config",
+    "name": "config",
+    "type": "base",
+    "listRule": "",
+    "viewRule": "",
+    "createRule": "",
+    "updateRule": "",
+    "deleteRule": "",
+    "schema": [
+      {
+        "name": "key",
+        "type": "text",
+        "required": true,
+        "options": { "min": null, "max": null, "pattern": "" }
+      },
+      {
+        "name": "value",
+        "type": "text",
+        "required": false,
+        "options": { "min": null, "max": null, "pattern": "" }
       }
     ]
   }

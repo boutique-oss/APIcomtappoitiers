@@ -1,24 +1,27 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { pb, Structure, Statut, STATUT_COLORS, STATUT_BG } from '@/lib/pocketbase'
+import { pb, Structure, Statut, STATUT_COLORS, STATUT_BG, getScriptBase, setScriptBase } from '@/lib/pocketbase'
 import Map from '@/components/Map'
 import FicheModal from '@/components/FicheModal'
 import AdminAuth from '@/components/AdminAuth'
 import AdminPanel from '@/components/AdminPanel'
+import ScriptBaseModal from '@/components/ScriptBaseModal'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
 export default function HomePage() {
   const [authenticated, setAuthenticated] = useState(false)
-  const [structures, setStructures] = useState<Structure[]>([])
-  const [selected, setSelected] = useState<Structure | null>(null)
-  const [showAdmin, setShowAdmin] = useState(false)
-  const [filterStatut, setFilterStatut] = useState<Statut | 'Tous'>('Tous')
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
-  const [lastSync, setLastSync] = useState<string | null>(null)
+  const [structures, setStructures]       = useState<Structure[]>([])
+  const [selected, setSelected]           = useState<Structure | null>(null)
+  const [showAdmin, setShowAdmin]         = useState(false)
+  const [showScriptBase, setShowScriptBase] = useState(false)
+  const [filterStatut, setFilterStatut]   = useState<Statut | 'Tous'>('Tous')
+  const [search, setSearch]               = useState('')
+  const [loading, setLoading]             = useState(true)
+  const [syncing, setSyncing]             = useState(false)
+  const [lastSync, setLastSync]           = useState<string | null>(null)
+  const [scriptBase, setScriptBaseState]  = useState('')
 
   const fetchStructures = useCallback(async (manual = false) => {
     if (manual) setSyncing(true)
@@ -37,12 +40,18 @@ export default function HomePage() {
     }
   }, [])
 
+  const fetchScriptBase = useCallback(async () => {
+    const val = await getScriptBase()
+    setScriptBaseState(val)
+  }, [])
+
   useEffect(() => {
     if (sessionStorage.getItem('admin_ok') === '1') {
       setAuthenticated(true)
       fetchStructures()
+      fetchScriptBase()
     }
-  }, [fetchStructures])
+  }, [fetchStructures, fetchScriptBase])
 
   // Rafraîchissement automatique toutes les 2 minutes
   useEffect(() => {
@@ -54,7 +63,13 @@ export default function HomePage() {
   const handleAuthSuccess = () => {
     setAuthenticated(true)
     fetchStructures()
+    fetchScriptBase()
   }
+
+  const handleSaveScriptBase = useCallback(async (value: string) => {
+    await setScriptBase(value)
+    setScriptBaseState(value)
+  }, [])
 
   if (!authenticated) {
     return <AdminAuth onSuccess={handleAuthSuccess} mandatory />
@@ -89,13 +104,22 @@ export default function HomePage() {
               <span className="text-slate-400 font-normal">Grand Poitiers</span>
             </h1>
           </div>
-          <button
-            onClick={() => setShowAdmin(true)}
-            title="Gestion"
-            className="text-slate-600 hover:text-amber-400 transition-colors mt-1 text-base"
-          >
-            ⚙️
-          </button>
+          <div className="flex items-center gap-2 mt-1">
+            <button
+              onClick={() => setShowScriptBase(true)}
+              title="Script de prospection — template de base"
+              className="text-slate-600 hover:text-amber-400 transition-colors text-base"
+            >
+              📋
+            </button>
+            <button
+              onClick={() => setShowAdmin(true)}
+              title="Gestion"
+              className="text-slate-600 hover:text-amber-400 transition-colors text-base"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
 
         {/* Stats rapides */}
@@ -188,6 +212,9 @@ export default function HomePage() {
                     style={{ background: STATUT_COLORS[s.statut] }}
                   />
                   <span className="text-sm text-slate-200 font-medium truncate">{s.nom}</span>
+                  {s.script && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" title="Script personnalisé" />
+                  )}
                 </div>
                 <div className="text-xs text-slate-600 font-mono mt-0.5 pl-4 truncate">
                   {s.categorie}
@@ -222,6 +249,7 @@ export default function HomePage() {
       {selected && (
         <FicheModal
           structure={selected}
+          scriptBase={scriptBase}
           onClose={() => setSelected(null)}
           onUpdate={updated => {
             setStructures(prev => prev.map(s => s.id === updated.id ? updated : s))
@@ -236,6 +264,14 @@ export default function HomePage() {
           onClose={() => setShowAdmin(false)}
           onRefresh={fetchStructures}
           onSelectStructure={s => { setSelected(s); setShowAdmin(false) }}
+        />
+      )}
+
+      {showScriptBase && (
+        <ScriptBaseModal
+          value={scriptBase}
+          onSave={handleSaveScriptBase}
+          onClose={() => setShowScriptBase(false)}
         />
       )}
     </div>

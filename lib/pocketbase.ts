@@ -20,8 +20,42 @@ export interface Structure {
   contact_email: string
   statut: Statut
   notes: string
+  script: string
   created: string
   updated: string
+}
+
+export interface Config {
+  id: string
+  key: string
+  value: string
+}
+
+export async function getScriptBase(): Promise<string> {
+  try {
+    const record = await pb.collection('config').getFirstListItem<Config>('key="script_base"')
+    return record.value || ''
+  } catch {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('script_base') || ''
+    }
+    return ''
+  }
+}
+
+export async function setScriptBase(value: string): Promise<void> {
+  try {
+    const record = await pb.collection('config').getFirstListItem<Config>('key="script_base"')
+    await pb.collection('config').update(record.id, { value })
+  } catch {
+    try {
+      await pb.collection('config').create({ key: 'script_base', value })
+    } catch {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('script_base', value)
+      }
+    }
+  }
 }
 
 export const STATUT_COLORS: Record<Statut, string> = {
