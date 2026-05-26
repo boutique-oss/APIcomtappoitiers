@@ -157,7 +157,6 @@ export default function FolderManager({ structures, activeDossier, onSelectDossi
             <div
               className={itemClass(name)}
               onClick={() => onSelectDossier(name)}
-              onDoubleClick={() => { setRenaming(name); setRenameValue(name) }}
               onDragOver={e => { e.preventDefault(); setDragOver(name) }}
               onDragLeave={handleDragLeave}
               onDrop={e => handleDrop(e, name)}
@@ -165,6 +164,13 @@ export default function FolderManager({ structures, activeDossier, onSelectDossi
               <span className="text-sm leading-none">📂</span>
               <span className="flex-1 truncate font-medium">{name}</span>
               <span className="text-xs font-mono text-slate-600 group-hover:hidden">{countIn(name)}</span>
+              <button
+                onClick={e => { e.stopPropagation(); setRenaming(name); setRenameValue(name) }}
+                className="hidden group-hover:flex items-center justify-center text-slate-600 hover:text-amber-400 transition-colors text-xs leading-none px-0.5"
+                title="Renommer"
+              >
+                ✏️
+              </button>
               <button
                 onClick={e => { e.stopPropagation(); deleteFolder(name) }}
                 className="hidden group-hover:flex items-center justify-center text-slate-600 hover:text-red-400 transition-colors text-sm leading-none"
