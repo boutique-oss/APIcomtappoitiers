@@ -11,6 +11,16 @@ import FolderManager from '@/components/FolderManager'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
+const DOSSIER_MAP_KEY = 'dossier_assignments'
+
+function loadDossierMap(): Record<string, string> {
+  if (typeof window === 'undefined') return {}
+  try { return JSON.parse(localStorage.getItem(DOSSIER_MAP_KEY) || '{}') } catch { return {} }
+}
+function saveDossierMap(map: Record<string, string>) {
+  localStorage.setItem(DOSSIER_MAP_KEY, JSON.stringify(map))
+}
+
 export default function HomePage() {
   const [authenticated, setAuthenticated] = useState(false)
   const [structures, setStructures]       = useState<Structure[]>([])
@@ -30,7 +40,13 @@ export default function HomePage() {
     else setLoading(true)
     try {
       const records = await pb.collection('structures').getFullList<Structure>({ sort: 'nom' })
-      setStructures(records)
+      // Applique les affectations locales si PocketBase n'a pas encore le champ dossier
+      const map = loadDossierMap()
+      const withDossiers = records.map(r => ({
+        ...r,
+        dossier: r.dossier || map[r.id] || ''
+      }))
+      setStructures(withDossiers)
       if (manual) {
         setLastSync(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }))
       }
@@ -74,11 +90,20 @@ export default function HomePage() {
   }, [])
 
   const handleMoveToDossier = useCallback(async (structureId: string, dossier: string) => {
+    // Sauvegarde locale immédiate (fiable même sans champ PocketBase)
+    const map = loadDossierMap()
+    if (dossier) map[structureId] = dossier
+    else delete map[structureId]
+    saveDossierMap(map)
+
+    // Mise à jour de l'état local
+    setStructures(prev => prev.map(s => s.id === structureId ? { ...s, dossier } : s))
+
+    // Tentative de persistance dans PocketBase (échoue silencieusement si champ absent)
     try {
       await pb.collection('structures').update(structureId, { dossier })
-      setStructures(prev => prev.map(s => s.id === structureId ? { ...s, dossier } : s))
-    } catch (e) {
-      console.error('Erreur déplacement dossier', e)
+    } catch {
+      // Le champ dossier n'existe pas encore dans PocketBase — localStorage suffit
     }
   }, [])
 
