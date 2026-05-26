@@ -154,50 +154,48 @@ export default function FolderManager({ structures, activeDossier, onSelectDossi
                 onBlur={() => commitRename(name)}
               />
             </div>
-          ) : (
-            {confirmDelete === name ? (
-              <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-red-900/20 border border-red-500/30 text-xs mb-0.5">
-                <span className="flex-1 text-red-300 truncate">Supprimer «&nbsp;{name}&nbsp;» ?</span>
-                <button
-                  onClick={e => { e.stopPropagation(); deleteFolder(name); setConfirmDelete(null) }}
-                  className="text-red-400 hover:text-red-300 font-bold px-1"
-                >
-                  Oui
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); setConfirmDelete(null) }}
-                  className="text-slate-500 hover:text-white px-1"
-                >
-                  Non
-                </button>
-              </div>
-            ) : (
-              <div
-                className={itemClass(name)}
-                onClick={() => onSelectDossier(name)}
-                onDragOver={e => { e.preventDefault(); setDragOver(name) }}
-                onDragLeave={handleDragLeave}
-                onDrop={e => handleDrop(e, name)}
+          ) : confirmDelete === name ? (
+            <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-red-900/20 border border-red-500/30 text-xs mb-0.5">
+              <span className="flex-1 text-red-300 truncate">Supprimer «&nbsp;{name}&nbsp;» ?</span>
+              <button
+                onClick={e => { e.stopPropagation(); deleteFolder(name); setConfirmDelete(null) }}
+                className="text-red-400 hover:text-red-300 font-bold px-1"
               >
-                <span className="text-sm leading-none">📂</span>
-                <span className="flex-1 truncate font-medium">{name}</span>
-                <span className="text-xs font-mono text-slate-600 group-hover:hidden">{countIn(name)}</span>
-                <button
-                  onClick={e => { e.stopPropagation(); setRenaming(name); setRenameValue(name) }}
-                  className="hidden group-hover:flex items-center justify-center text-slate-600 hover:text-amber-400 transition-colors text-xs leading-none px-0.5"
-                  title="Renommer"
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={e => { e.stopPropagation(); setConfirmDelete(name) }}
-                  className="hidden group-hover:flex items-center justify-center text-slate-600 hover:text-red-400 transition-colors text-sm leading-none"
-                  title="Supprimer le dossier"
-                >
-                  ×
-                </button>
-              </div>
-            )}
+                Oui
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmDelete(null) }}
+                className="text-slate-500 hover:text-white px-1"
+              >
+                Non
+              </button>
+            </div>
+          ) : (
+            <div
+              className={itemClass(name)}
+              onClick={() => onSelectDossier(name)}
+              onDragOver={e => { e.preventDefault(); setDragOver(name) }}
+              onDragLeave={handleDragLeave}
+              onDrop={e => handleDrop(e, name)}
+            >
+              <span className="text-sm leading-none">📂</span>
+              <span className="flex-1 truncate font-medium">{name}</span>
+              <span className="text-xs font-mono text-slate-600 group-hover:hidden">{countIn(name)}</span>
+              <button
+                onClick={e => { e.stopPropagation(); setRenaming(name); setRenameValue(name) }}
+                className="hidden group-hover:flex items-center justify-center text-slate-600 hover:text-amber-400 transition-colors text-xs leading-none px-0.5"
+                title="Renommer"
+              >
+                ✏️
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); setConfirmDelete(name) }}
+                className="hidden group-hover:flex items-center justify-center text-slate-600 hover:text-red-400 transition-colors text-sm leading-none"
+                title="Supprimer le dossier"
+              >
+                ×
+              </button>
+            </div>
           )}
         </div>
       ))}
