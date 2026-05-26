@@ -22,6 +22,27 @@ export default function AdminPanel({ structures, onClose, onRefresh, onSelectStr
     onClose()
   }
 
+  const exportCSV = () => {
+    const cols = ['nom','categorie','adresse','ville','code_postal','contact_nom','contact_tel','contact_email','statut','notes','dossier'] as const
+    const escape = (v: unknown) => {
+      const s = String(v ?? '')
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const rows = [
+      cols.join(','),
+      ...structures.map(s => cols.map(c => escape(s[c as keyof typeof s])).join(','))
+    ]
+    const blob = new Blob(['﻿' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `prospects_${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const handleDelete = async (id: string) => {
     setDeleting(id)
     try {
@@ -53,6 +74,12 @@ export default function AdminPanel({ structures, onClose, onRefresh, onSelectStr
           <span className="text-slate-400 text-sm">{structures.length} structures</span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={exportCSV}
+            className="bg-ardoise-700 hover:bg-ardoise-600 text-slate-300 hover:text-white text-xs font-medium rounded px-3 py-1.5 transition-colors flex items-center gap-1.5"
+          >
+            <span>↓</span> Exporter CSV
+          </button>
           <button
             onClick={() => setShowImport(true)}
             className="bg-ardoise-700 hover:bg-ardoise-600 text-slate-300 hover:text-white text-xs font-medium rounded px-3 py-1.5 transition-colors flex items-center gap-1.5"

@@ -20,6 +20,7 @@ interface CSVRow {
   contact_email?: string
   statut?: string
   notes?: string
+  dossier?: string
   [key: string]: string | undefined
 }
 
@@ -88,6 +89,7 @@ export default function ImportCSV({ onImported, onClose }: Props) {
         }
         if (statutValue && STATUTS_VALIDES.includes(statutValue)) payload.statut = statutValue
         if (row.contact_email?.trim()) payload.contact_email = row.contact_email.trim()
+        if (row.dossier?.trim()) payload.dossier = row.dossier.trim()
 
         await pb.collection('structures').create(payload)
       } catch (e: any) {
@@ -123,7 +125,7 @@ export default function ImportCSV({ onImported, onClose }: Props) {
           {step === 'upload' && (
             <div>
               <p className="text-sm text-slate-400 mb-4">
-                Colonnes attendues : <span className="font-mono text-amber-400 text-xs">nom, categorie, adresse, ville, code_postal, contact_nom, contact_tel, contact_email, statut, notes</span>
+                Colonnes attendues : <span className="font-mono text-amber-400 text-xs">nom, categorie, adresse, ville, code_postal, contact_nom, contact_tel, contact_email, statut, notes, dossier</span>
               </p>
               <div
                 className="border-2 border-dashed border-ardoise-600 hover:border-amber-500 rounded-lg p-8 text-center cursor-pointer transition-colors"

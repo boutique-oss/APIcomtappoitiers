@@ -21,6 +21,7 @@ export interface Structure {
   statut: Statut
   notes: string
   script: string
+  dossier: string
   created: string
   updated: string
 }

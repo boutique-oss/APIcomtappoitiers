@@ -7,6 +7,7 @@ import FicheModal from '@/components/FicheModal'
 import AdminAuth from '@/components/AdminAuth'
 import AdminPanel from '@/components/AdminPanel'
 import ScriptBaseModal from '@/components/ScriptBaseModal'
+import FolderManager from '@/components/FolderManager'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
@@ -17,6 +18,7 @@ export default function HomePage() {
   const [showAdmin, setShowAdmin]         = useState(false)
   const [showScriptBase, setShowScriptBase] = useState(false)
   const [filterStatut, setFilterStatut]   = useState<Statut | 'Tous'>('Tous')
+  const [filterDossier, setFilterDossier] = useState<string | null>(null)
   const [search, setSearch]               = useState('')
   const [loading, setLoading]             = useState(true)
   const [syncing, setSyncing]             = useState(false)
@@ -71,15 +73,28 @@ export default function HomePage() {
     setScriptBaseState(value)
   }, [])
 
+  const handleMoveToDossier = useCallback(async (structureId: string, dossier: string) => {
+    try {
+      await pb.collection('structures').update(structureId, { dossier })
+      setStructures(prev => prev.map(s => s.id === structureId ? { ...s, dossier } : s))
+    } catch (e) {
+      console.error('Erreur déplacement dossier', e)
+    }
+  }, [])
+
   if (!authenticated) {
     return <AdminAuth onSuccess={handleAuthSuccess} mandatory />
   }
 
   const filtered = structures.filter(s => {
-    const matchStatut = filterStatut === 'Tous' || s.statut === filterStatut
-    const matchSearch = s.nom.toLowerCase().includes(search.toLowerCase()) ||
-                        s.categorie?.toLowerCase().includes(search.toLowerCase())
-    return matchStatut && matchSearch
+    const matchStatut  = filterStatut === 'Tous' || s.statut === filterStatut
+    const matchSearch  = s.nom.toLowerCase().includes(search.toLowerCase()) ||
+                         s.categorie?.toLowerCase().includes(search.toLowerCase())
+    const matchDossier = filterDossier === null ||
+      (filterDossier === 'Non classé'
+        ? !s.dossier || s.dossier.trim() === ''
+        : s.dossier === filterDossier)
+    return matchStatut && matchSearch && matchDossier
   })
 
   const counts = STATUTS.reduce((acc, s) => {
@@ -135,7 +150,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Bouton sync bidirectionnel */}
+          {/* Bouton sync */}
           <button
             onClick={() => fetchStructures(true)}
             disabled={syncing}
@@ -148,6 +163,14 @@ export default function HomePage() {
             )}
           </button>
         </div>
+
+        {/* ── Gestionnaire de dossiers ── */}
+        <FolderManager
+          structures={structures}
+          activeDossier={filterDossier}
+          onSelectDossier={setFilterDossier}
+          onMoveToDossier={handleMoveToDossier}
+        />
 
         {/* Recherche */}
         <div className="px-4 py-3">
@@ -185,7 +208,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Liste */}
+        {/* Liste — cartes glissables */}
         <div className="flex-1 overflow-y-auto px-3 pb-3">
           {loading ? (
             <div className="text-xs text-slate-600 font-mono text-center py-8 animate-pulse">
@@ -197,16 +220,22 @@ export default function HomePage() {
             </div>
           ) : (
             filtered.map(s => (
-              <button
+              <div
                 key={s.id}
+                draggable
+                onDragStart={e => {
+                  e.dataTransfer.setData('structure_id', s.id)
+                  e.dataTransfer.effectAllowed = 'move'
+                }}
                 onClick={() => setSelected(s)}
-                className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-all ${
+                className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-all cursor-grab active:cursor-grabbing select-none ${
                   selected?.id === s.id
                     ? 'bg-ardoise-700 border border-ardoise-600'
                     : 'hover:bg-ardoise-800 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-2">
+                  <span className="text-slate-700 text-xs opacity-60 leading-none flex-shrink-0">⠿</span>
                   <span
                     className="w-2 h-2 rounded-full flex-shrink-0"
                     style={{ background: STATUT_COLORS[s.statut] }}
@@ -216,10 +245,10 @@ export default function HomePage() {
                     <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" title="Script personnalisé" />
                   )}
                 </div>
-                <div className="text-xs text-slate-600 font-mono mt-0.5 pl-4 truncate">
+                <div className="text-xs text-slate-600 font-mono mt-0.5 pl-5 truncate">
                   {s.categorie}
                 </div>
-              </button>
+              </div>
             ))
           )}
         </div>
