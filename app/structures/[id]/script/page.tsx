@@ -157,13 +157,13 @@ export default function ScriptPage() {
               </button>
             )}
           </div>
-          <div className="flex-1 overflow-hidden px-8 py-5">
+          <div className="flex-1 overflow-y-auto px-8 py-5">
             <textarea
               value={text}
               onChange={handleChange}
               placeholder={`Rédigez votre texte pour ${structure.nom}…`}
-              className="w-full h-full bg-transparent text-slate-100 text-base leading-8 placeholder-slate-700 resize-none focus:outline-none"
-              style={{ fontFamily: 'inherit' }}
+              className="w-full bg-transparent text-slate-100 text-base leading-8 placeholder-slate-700 resize-none focus:outline-none"
+              style={{ fontFamily: 'inherit', minHeight: '100%' }}
               spellCheck
             />
           </div>
