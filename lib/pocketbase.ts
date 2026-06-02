@@ -22,6 +22,10 @@ export interface Structure {
   notes: string
   script: string
   dossier: string
+  potentielMobilier: string
+  proximite: string
+  relation: string
+  besoin: string
   created: string
   updated: string
 }

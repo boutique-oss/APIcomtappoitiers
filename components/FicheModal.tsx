@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { pb, Structure, Statut, STATUT_BG } from '@/lib/pocketbase'
 import ScriptEditor from '@/components/ScriptEditor'
+import ScoringPanel from '@/components/ScoringPanel'
+import { scoreProspect, niveau, NIVEAU_META, type ProspectScoring, type NiveauKey } from '@/lib/prospection-scoring'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
-type Tab = 'fiche' | 'script'
+type Tab = 'fiche' | 'scoring' | 'script'
 
 interface Props {
   structure: Structure
@@ -23,6 +25,16 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
   const [form, setForm]               = useState<Partial<Structure>>(structure)
   const formRef                       = useRef(form)
   formRef.current                     = form
+
+  const scoringValues: ProspectScoring = {
+    potentielMobilier: form.potentielMobilier || '',
+    proximite:         form.proximite || '',
+    relation:          form.relation || '',
+    besoin:            form.besoin || '',
+  }
+  const liveScore = scoreProspect(scoringValues)
+  const liveNiv   = niveau(liveScore) as NiveauKey | null
+  const liveMeta  = liveNiv ? NIVEAU_META[liveNiv] : null
 
   // Reset quand on change de structure
   useEffect(() => {
@@ -112,7 +124,17 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
               <div className="text-xs font-mono text-amber-500 uppercase tracking-widest mb-1">
                 {structure.categorie}
               </div>
-              <h2 className="text-lg font-bold text-white leading-tight">{structure.nom}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-white leading-tight">{structure.nom}</h2>
+                {liveMeta && (
+                  <span
+                    className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
+                    style={{ color: liveMeta.couleur, backgroundColor: `${liveMeta.couleur}22` }}
+                  >
+                    {liveMeta.texte} {liveScore}/{12}
+                  </span>
+                )}
+              </div>
             </div>
             <button
               onClick={onClose}
@@ -150,6 +172,22 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
               }`}
             >
               Fiche
+            </button>
+            <button
+              onClick={() => setActiveTab('scoring')}
+              className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors flex items-center gap-1.5 ${
+                activeTab === 'scoring'
+                  ? 'border-amber-500 text-amber-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Score
+              {liveNiv && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full inline-block"
+                  style={{ backgroundColor: liveMeta?.couleur }}
+                />
+              )}
             </button>
             <button
               onClick={() => setActiveTab('script')}
@@ -252,6 +290,52 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
                   className="w-full bg-ardoise-700 hover:bg-ardoise-600 text-white text-sm font-medium rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
                 >
                   <span>✎</span> Modifier la fiche
+                </button>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ── Contenu : onglet Scoring ── */}
+        {activeTab === 'scoring' && (
+          <>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <ScoringPanel
+                values={scoringValues}
+                editing={editing}
+                onChange={(field, value) => setForm({ ...form, [field]: value })}
+              />
+            </div>
+            {/* Footer scoring — même que fiche */}
+            <div className="sticky bottom-0 bg-ardoise-900 border-t border-ardoise-700 px-5 py-3">
+              {editing ? (
+                <>
+                  <div className="flex gap-2 mb-2">
+                    <button
+                      onClick={() => handleSave(false)}
+                      disabled={saving}
+                      className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-ardoise-950 font-bold text-sm rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {saving ? (
+                        <><span className="animate-spin inline-block">⟳</span> Enregistrement…</>
+                      ) : (
+                        <><span>↑</span> Enregistrer &amp; Sync</>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => { setEditing(false); setForm(structure) }}
+                      className="px-4 py-2 text-sm text-slate-400 hover:text-white border border-ardoise-700 rounded transition-colors"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="w-full bg-ardoise-700 hover:bg-ardoise-600 text-white text-sm font-medium rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>✎</span> Qualifier ce prospect
                 </button>
               )}
             </div>
