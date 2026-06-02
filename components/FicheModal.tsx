@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { pb, Structure, Statut, STATUT_BG } from '@/lib/pocketbase'
-import ScriptEditor from '@/components/ScriptEditor'
-import ScoringPanel from '@/components/ScoringPanel'
 import { scoreProspect, niveau, NIVEAU_META, type ProspectScoring, type NiveauKey } from '@/lib/prospection-scoring'
 
 const STATUTS: Statut[] = ['À contacter', 'En cours', 'RDV planifié', 'Signé', 'Sans suite']
 
-type Tab = 'fiche' | 'scoring' | 'script'
+type Tab = 'fiche'
 
 interface Props {
   structure: Structure
@@ -174,12 +172,8 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
               Fiche
             </button>
             <button
-              onClick={() => setActiveTab('scoring')}
-              className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors flex items-center gap-1.5 ${
-                activeTab === 'scoring'
-                  ? 'border-amber-500 text-amber-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-300'
-              }`}
+              onClick={() => window.open(`/structures/${structure.id}/score`, '_blank')}
+              className="px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1.5"
             >
               Score
               {liveNiv && (
@@ -188,19 +182,17 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
                   style={{ backgroundColor: liveMeta?.couleur }}
                 />
               )}
+              <span className="text-ardoise-600 text-[10px]">↗</span>
             </button>
             <button
-              onClick={() => setActiveTab('script')}
-              className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors flex items-center gap-1.5 ${
-                activeTab === 'script'
-                  ? 'border-amber-500 text-amber-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-300'
-              }`}
+              onClick={() => window.open(`/structures/${structure.id}/script`, '_blank')}
+              className="px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1.5"
             >
               Script
               {structure.script && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" title="Script personnalisé présent" />
               )}
+              <span className="text-ardoise-600 text-[10px]">↗</span>
             </button>
           </div>
         </div>
@@ -296,63 +288,6 @@ export default function FicheModal({ structure, scriptBase, onClose, onUpdate }:
           </>
         )}
 
-        {/* ── Contenu : onglet Scoring ── */}
-        {activeTab === 'scoring' && (
-          <>
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-              <ScoringPanel
-                values={scoringValues}
-                editing={editing}
-                onChange={(field, value) => setForm({ ...form, [field]: value })}
-              />
-            </div>
-            {/* Footer scoring — même que fiche */}
-            <div className="sticky bottom-0 bg-ardoise-900 border-t border-ardoise-700 px-5 py-3">
-              {editing ? (
-                <>
-                  <div className="flex gap-2 mb-2">
-                    <button
-                      onClick={() => handleSave(false)}
-                      disabled={saving}
-                      className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-ardoise-950 font-bold text-sm rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
-                    >
-                      {saving ? (
-                        <><span className="animate-spin inline-block">⟳</span> Enregistrement…</>
-                      ) : (
-                        <><span>↑</span> Enregistrer &amp; Sync</>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => { setEditing(false); setForm(structure) }}
-                      className="px-4 py-2 text-sm text-slate-400 hover:text-white border border-ardoise-700 rounded transition-colors"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="w-full bg-ardoise-700 hover:bg-ardoise-600 text-white text-sm font-medium rounded px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
-                >
-                  <span>✎</span> Qualifier ce prospect
-                </button>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* ── Contenu : onglet Script ── */}
-        {activeTab === 'script' && (
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            <ScriptEditor
-              structureNom={structure.nom}
-              scriptClient={structure.script || ''}
-              scriptBase={scriptBase}
-              onSaveClient={handleSaveScript}
-            />
-          </div>
-        )}
       </div>
     </div>
   )
