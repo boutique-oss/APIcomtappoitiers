@@ -77,7 +77,7 @@ export default function ScriptPage() {
   const baseAdapted = scriptBase.replace(/\{NOM\}/g, structure.nom)
 
   return (
-    <div className="min-h-screen bg-ardoise-950 flex flex-col">
+    <div className="h-screen bg-ardoise-950 flex flex-col overflow-hidden">
 
       {/* ── Header ── */}
       <div className="border-b border-ardoise-700 px-8 py-4 flex items-center gap-4 bg-ardoise-900">
